@@ -1,0 +1,10 @@
+{
+  "apps": [
+    {
+      "name": "my-em",
+      "script": "./dist/src/main.js",
+      "interpreter_args": "--require /path/to/.pnp.js",
+      "exec_mode": "cluster"
+    }
+  ]
+}
