@@ -13,7 +13,7 @@ import { Permission } from '../permission/entities/permission.entity';
   imports: [
     HttpModule,
     TypeOrmModule.forFeature([User, Role, Permission]),
-    JwtModule.register({ secret: process.env.YANDEX_SECRET }),
+    JwtModule.register({ secret: process.env.APP_SECRET }),
   ],
   controllers: [UserController],
   providers: [UserService],

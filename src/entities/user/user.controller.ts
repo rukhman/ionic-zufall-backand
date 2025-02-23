@@ -3,7 +3,14 @@ import { Response } from 'express';
 
 import { UserService } from './user.service';
 import { catchError, from, mergeMap, of, tap } from 'rxjs';
-import { E_AuthService, E_Gender, E_ResponseTypes, GoogleUserDto, IYandexResponseUserData, UserProfile } from './types';
+import {
+  E_AuthService,
+  E_Gender,
+  E_ResponseTypes,
+  GoogleRespUserDto,
+  IYandexResponseUserData,
+  UserProfile,
+} from './types';
 import { JwtService } from '@nestjs/jwt';
 import { SetRolesDto } from '../role/dto/update-role.dto';
 import { SetPermissionDto } from '../permission/dto/update-permission.dto';
@@ -61,7 +68,7 @@ export class UserController {
   auth(@Res() res: Response, @Body() authDto: AuthDto) {
     let jwtToken: string = null;
     this.userService
-      .getJwtToken(authDto?.accessToken)
+      .getYandexJwtToken(authDto?.accessToken)
       .pipe(
         catchError(() => {
           return of(
@@ -75,7 +82,9 @@ export class UserController {
           jwtToken = token;
           let userYandex: IYandexResponseUserData;
           try {
-            userYandex = this.jwtService.verify(jwtToken);
+            userYandex = this.jwtService.verify(jwtToken, {
+              secret: process.env.YANDEX_SECRET,
+            });
           } catch {
             throw 'jwtToken не валидный';
           }
@@ -104,11 +113,7 @@ export class UserController {
           userData.roles.forEach((role) => (userData.permissions = [...userData.permissions, ...role.permissions]));
           userData.permissions = uniq(userData.permissions);
 
-          return from(
-            this.jwtService.signAsync(JSON.stringify(userData), {
-              secret: process.env.APP_SECRET,
-            }),
-          );
+          return from(this.jwtService.signAsync(JSON.stringify(userData)));
         }),
         tap((jwt: any) => {
           res.send({
@@ -133,28 +138,33 @@ export class UserController {
    */
   @Public()
   @Post('/google-auth')
-  async googleAuth(@Res() res: Response, @Body() googleUserData: any | GoogleUserDto) {
-    console.log(1, googleUserData);
-    const userData = await this.userService.getUserData(+googleUserData.id, E_AuthService.Google);
-    console.log(2, userData);
+  async googleAuth(@Body() { accessToken }: { accessToken: string }) {
+    const googleUserData: GoogleRespUserDto = await this.userService.getUserGoogleDataByAccessToken(accessToken);
+    if (!googleUserData) return;
+    const userData: User = await this.userService.getUserData(+googleUserData.sub, E_AuthService.Google);
 
+    let jwt;
     if (!userData) {
-      return this.userService.upsertUser(
+      const newUser = await this.userService.upsertUser(
         new UserProfile({
           authService: E_AuthService.Google,
-          authId: +googleUserData.id,
-          firstName: null,
-          secondName: null,
-          fullName: googleUserData.givenName,
+          authId: +googleUserData.sub,
+          firstName: googleUserData.given_name,
+          secondName: googleUserData.family_name,
+          fullName: googleUserData.name,
           email: googleUserData.email,
-          avatarId: googleUserData.imageUrl,
+          avatarId: googleUserData.picture,
           phone: null,
           birthDate: null,
           gender: null,
         }),
       );
+      jwt = await this.jwtService.signAsync(JSON.stringify(newUser));
+    } else {
+      jwt = await this.jwtService.signAsync(JSON.stringify(userData));
     }
-    return userData;
+
+    return { jwt };
   }
 
   @Post('/set-roles')

@@ -5,7 +5,7 @@ import { In, Repository } from 'typeorm';
 import { AxiosHeaders } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { Observable, from, map } from 'rxjs';
-import { E_AuthService, UserProfile } from './types';
+import { E_AuthService, GoogleRespUserDto, UserProfile } from './types';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
 
@@ -67,7 +67,7 @@ export class UserService {
     return await this.userRepository.delete(id);
   }
 
-  getJwtToken(accessToken: string): Observable<string> {
+  getYandexJwtToken(accessToken: string): Observable<string> {
     const headers = new AxiosHeaders({ Authorization: 'OAuth ' + accessToken });
     return this.httpService
       .get<string>('https://login.yandex.ru/info?format=jwt', {
@@ -87,6 +87,13 @@ export class UserService {
     });
   }
 
+  async getUserGoogleDataByAccessToken(accessToken: string): Promise<GoogleRespUserDto> {
+    return this.httpService
+      .get<GoogleRespUserDto>(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`)
+      .toPromise()
+      .then((data) => data.data);
+  }
+  // `https://www.googleapis.com/oauth2/v3/userinfo?access_token={access_token}`
   async getUserDataById(id: number): Promise<User> {
     return this.userRepository.findOne({
       relations: {

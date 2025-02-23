@@ -23,7 +23,6 @@ export class EventController {
   @Get('/my')
   @UseInterceptors(AppendUserInfoInterceptor)
   async findMy(@Req() req: Request) {
-    console.log(req['me']);
     const events = await this.eventService.getMyEvents(req['me'].authId);
     return events;
   }

@@ -14,9 +14,8 @@ export class AppendUserInfoInterceptor implements NestInterceptor {
       throw new UnauthorizedException('Please provide token');
     }
     const authToken = authorization.replace(/bearer/gim, '').trim();
-    const user = this.jwtService.verify(authToken, {
-      secret: process.env.APP_SECRET,
-    });
+
+    const user = this.jwtService.verify(authToken, { secret: process.env.APP_SECRET });
     request.me = user;
     return next.handle();
   }
