@@ -3,7 +3,7 @@ import { Response } from 'express';
 
 import { UserService } from './user.service';
 import { catchError, from, mergeMap, of, tap } from 'rxjs';
-import { E_AuthService, E_Gender, E_ResponseTypes, IYandexResponseUserData, UserProfile } from './types';
+import { E_AuthService, E_Gender, E_ResponseTypes, GoogleUserDto, IYandexResponseUserData, UserProfile } from './types';
 import { JwtService } from '@nestjs/jwt';
 import { SetRolesDto } from '../role/dto/update-role.dto';
 import { SetPermissionDto } from '../permission/dto/update-permission.dto';
@@ -38,7 +38,7 @@ export class UserController {
   @Get(':id')
   @PermissionsMetadata([permissions.canVizitAdminPanel])
   async getUser(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
-    const userData = await this.userService.getUserData(id);
+    const userData = await this.userService.getUserDataById(id);
 
     return res.send({
       status: E_ResponseTypes.ok,
@@ -97,7 +97,7 @@ export class UserController {
         }),
         //после того как получили пользователя от яндекс
         mergeMap((userData: UserProfile) => {
-          return from(this.userService.getUserData(userData.authId));
+          return from(this.userService.getUserData(userData.authId, E_AuthService.Yandex));
         }),
         mergeMap((userData: User & { permissions: Permission[] }) => {
           userData.permissions = [];
@@ -126,6 +126,35 @@ export class UserController {
         }),
       )
       .subscribe();
+  }
+
+  /**
+   * авторизация
+   */
+  @Public()
+  @Post('/google-auth')
+  async googleAuth(@Res() res: Response, @Body() googleUserData: any | GoogleUserDto) {
+    console.log(1, googleUserData);
+    const userData = await this.userService.getUserData(+googleUserData.id, E_AuthService.Google);
+    console.log(2, userData);
+
+    if (!userData) {
+      return this.userService.upsertUser(
+        new UserProfile({
+          authService: E_AuthService.Google,
+          authId: +googleUserData.id,
+          firstName: null,
+          secondName: null,
+          fullName: googleUserData.givenName,
+          email: googleUserData.email,
+          avatarId: googleUserData.imageUrl,
+          phone: null,
+          birthDate: null,
+          gender: null,
+        }),
+      );
+    }
+    return userData;
   }
 
   @Post('/set-roles')

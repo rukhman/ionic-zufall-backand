@@ -33,7 +33,7 @@ export class User {
   @Column({ name: 'birth_date', type: 'timestamp', nullable: true })
   birthDate: Date;
 
-  @Column({ name: 'gender', type: 'enum', enum: E_Gender })
+  @Column({ name: 'gender', type: 'enum', enum: E_Gender, nullable: true })
   gender: E_Gender;
 
   @Column({

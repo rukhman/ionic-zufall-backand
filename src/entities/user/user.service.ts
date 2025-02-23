@@ -5,7 +5,7 @@ import { In, Repository } from 'typeorm';
 import { AxiosHeaders } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { Observable, from, map } from 'rxjs';
-import { UserProfile } from './types';
+import { E_AuthService, UserProfile } from './types';
 import { User } from './entities/user.entity';
 import { Role } from '../role/entities/role.entity';
 
@@ -76,14 +76,25 @@ export class UserService {
       .pipe(map((res) => res.data));
   }
 
-  async getUserData(authId: number): Promise<User> {
+  async getUserData(authId: number, authService: E_AuthService): Promise<User> {
     return this.userRepository.findOne({
       relations: {
         roles: {
           permissions: true,
         },
       },
-      where: { authId },
+      where: { authId, authService },
+    });
+  }
+
+  async getUserDataById(id: number): Promise<User> {
+    return this.userRepository.findOne({
+      relations: {
+        roles: {
+          permissions: true,
+        },
+      },
+      where: { id },
     });
   }
 

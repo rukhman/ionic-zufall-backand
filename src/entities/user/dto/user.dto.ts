@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsISO8601, IsNotEmpty, IsEnum, MinLength } from 'class-validator';
+import { IsEmail, IsString, IsISO8601, IsEnum, MinLength } from 'class-validator';
 import { E_Gender } from '../types';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -19,7 +19,6 @@ export class UpdateUserDto {
   @IsISO8601()
   birthDate: Date;
 
-  @IsNotEmpty()
   @IsEnum(E_Gender)
   gender: E_Gender;
 }
