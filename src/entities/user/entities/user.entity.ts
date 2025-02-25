@@ -21,7 +21,7 @@ export class User {
   @Column({ name: 'full_name', type: 'varchar', nullable: true })
   fullName: string;
 
-  @Column({ name: 'email2', type: 'varchar' })
+  @Column({ name: 'email', type: 'varchar' })
   email: string;
 
   @Column({ name: 'avatar_id', type: 'varchar', nullable: true })

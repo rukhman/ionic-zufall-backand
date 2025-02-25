@@ -81,6 +81,7 @@ export class UserController {
         mergeMap((token: string) => {
           jwtToken = token;
           let userYandex: IYandexResponseUserData;
+          console.log(process.env.YANDEX_SECRET);
           try {
             userYandex = this.jwtService.verify(jwtToken, {
               secret: process.env.YANDEX_SECRET,
