@@ -22,27 +22,24 @@ export class EventController {
   @Public()
   @Get('/my')
   @UseInterceptors(AppendUserInfoInterceptor)
-  async findMy(@Req() req: Request) {
-    const events = await this.eventService.getMyEvents(req['me'].authId);
+  async findMy() {
+    const events = await this.eventService.getMyEvents();
     return events;
   }
 
   @Public()
   @Get('/withMe')
   @UseInterceptors(AppendUserInfoInterceptor)
-  async withMe(@Req() req: Request) {
-    const events = await this.eventService.getEventsWithMe(req['me'].authId);
+  async withMe() {
+    const events = await this.eventService.getEventsWithMe();
     return events;
   }
 
+  @Public()
   @Get('/:id')
-  async getUser(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
-    const userData = await this.eventService.getEventData(id);
-
-    return res.send({
-      status: 'ok',
-      data: userData,
-    });
+  async getEventById(@Param('id', ParseIntPipe) id: number) {
+    const event = await this.eventService.getEventData(id);
+    return event;
   }
 
   @Post('/')

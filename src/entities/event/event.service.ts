@@ -39,25 +39,26 @@ export class EventService {
     return result;
   }
 
-  public async getMyEvents(id: number) {
+  public async getMyEvents() {
     const result = await this.eventRepository.find({
       take: 50,
     });
     return result;
   }
 
-  public async getEventsWithMe(id: number) {
+  public async getEventsWithMe() {
     const result = await this.eventRepository.find({
       take: 50,
     });
     return result;
   }
 
-  // Get user data by id
+  // Get event data by id
   public async getEventData(id: number) {
+    console.log(id);
     return await this.eventRepository.findOne({
       where: { id },
-      select: this.eventRepository as any,
+      // select: this.eventRepository as any,
     });
   }
 
