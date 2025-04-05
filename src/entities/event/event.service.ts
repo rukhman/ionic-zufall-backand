@@ -55,10 +55,8 @@ export class EventService {
 
   // Get event data by id
   public async getEventData(id: number) {
-    console.log(id);
     return await this.eventRepository.findOne({
       where: { id },
-      // select: this.eventRepository as any,
     });
   }
 
